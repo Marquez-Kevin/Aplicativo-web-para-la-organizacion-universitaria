@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>UpNotes - Notas</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-icon">📖</div>
+    <div class="logo-text">
+      <h1>UpNotes</h1>
+      <p>Universidad de Pamplona - Organización Académica</p>
+    </div>
+  </div>
+  <a class="btn-semestre" href="/logout" style="text-decoration:none;">🚪 Cerrar sesión</a>
+</header>
+
+<div class="nav-bar">
+  <a href="/horario">Horario</a>
+  <a href="/materias">Mis Materias</a>
+  <a href="/calendario">Calendario</a>
+  <a href="/notas" class="active">Notas</a>
+</div>
+
+<div class="main-content" style="display:block; padding:20px;">
+  <div class="container">
+    <h2>Notas</h2>
+
+    <div class="card">
+      <form method="get" action="/notas" class="grid-2">
+        <select name="materiaId" required>
+          <option th:each="m : ${materiasUsuario}"
+                  th:value="${m.id}"
+                  th:selected="${materiaSeleccionada != null and materiaSeleccionada.id == m.id}"
+                  th:text="${m.nombre}">
+          </option>
+        </select>
+        <button class="btn-confirm" type="submit">Ver</button>
+      </form>
+    </div>
+
+    <div class="card" th:if="${materiaSeleccionada == null}">
+      <p class="muted">Primero registra una materia en “Mis Materias”.</p>
+    </div>
+
+    <div th:if="${materiaSeleccionada != null}">
+      <div class="card">
+        <h3 th:text="${materiaSeleccionada.nombre}">Materia</h3>
+        <p class="muted">Corte 1 y 2: promedio del 15% * 0.15 + nota 20% * 0.20. Corte 3: promedio 15% vale 0.10.</p>
+      </div>
+
+      <div class="card" th:each="c : ${#numbers.sequence(1,3)}">
+        <h3> Corte <span th:text="${c}">1</span> </h3>
+
+        <div class="nota-summary">
+          <div class="badge">
+            Nota Corte:
+            <span th:text="${notaCorte[c]}">0</span>
+          </div>
+          <div class="muted">
+            Peso 15%: <span th:text="${c == 3 ? '10%' : '15%'}">15%</span> | Peso 20%: 20%
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Agregar nota 15% -->
+          <div class="subcard">
+            <h4>Agregar nota 15% (múltiples)</h4>
+            <form action="/notas/guardar15" method="post" class="grid-2">
+              <input type="hidden" name="materiaId" th:value="${materiaSeleccionada.id}">
+              <input type="hidden" name="corte" th:value="${c}">
+              <input type="text" name="actividad" placeholder="Nombre actividad" required>
+              <input type="number" step="0.01" min="0" max="5" name="valor" placeholder="Nota (0-5)" required>
+              <button class="btn-confirm" type="submit" style="grid-column:1/-1;">Guardar 15%</button>
+            </form>
+
+            <div class="list">
+              <div class="row" th:each="n : ${notas15[c]}">
+                <div>
+                  <b th:text="${n.nombreActividad}">Actividad</b>
+                  <span class="muted"> - </span>
+                  <span th:text="${n.valor}">0</span>
+                </div>
+                <form action="/notas/eliminar" method="post">
+                  <input type="hidden" name="materiaId" th:value="${materiaSeleccionada.id}">
+                  <input type="hidden" name="id" th:value="${n.id}">
+                  <button class="btn-cancel" type="submit">Eliminar</button>
+                </form>
+              </div>
+              <div class="muted" th:if="${#lists.isEmpty(notas15[c])}">Sin notas 15% aún.</div>
+            </div>
+          </div>
+
+          <!-- Nota 20% -->
+          <div class="subcard">
+            <h4>Nota 20% (única)</h4>
+            <form action="/notas/guardar20" method="post" class="grid-2">
+              <input type="hidden" name="materiaId" th:value="${materiaSeleccionada.id}">
+              <input type="hidden" name="corte" th:value="${c}">
+              <input type="number" step="0.01" min="0" max="5" name="valor"
+                     th:value="${nota20[c] != null ? nota20[c].valor : ''}"
+                     placeholder="Nota (0-5)" required>
+              <button class="btn-confirm" type="submit">Guardar 20%</button>
+            </form>
+
+            <div class="muted" style="margin-top:10px;">
+              Actual: <b th:text="${nota20[c] != null ? nota20[c].valor : '—'}">—</b>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

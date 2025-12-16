@@ -1,0 +1,9 @@
+﻿target/
+*.jar
+*.war
+*.log
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

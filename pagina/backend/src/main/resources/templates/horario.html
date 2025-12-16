@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>UpNotes - Mi Horario</title>
+    <link rel="stylesheet" href="/css/estilos.css">
+
+    <style>
+        .schedule-container { padding: 20px; width: 95%; margin: auto; }
+        .top-info { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .credits-count { font-weight: bold; font-size: 18px; }
+
+        .schedule-table { width: 100%; border-collapse: collapse; background-color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .schedule-table th { background: linear-gradient(to bottom, #ff4d4d, #cc0000); color: white; padding: 10px; border: 1px solid #ffcccc; }
+        .schedule-table th.day-header { background: linear-gradient(to bottom, #ff9800, #f57c00); }
+        .schedule-table td { border: 1px solid #ddd; text-align: center; color: #cc0000; font-size: 13px; padding: 0; height: 60px; }
+        .schedule-table td:hover { background-color: #fff3e0; }
+
+        .time-cell {
+            background-color: #ffebee;
+            color: #b71c1c;
+            font-weight: bold;
+            font-size: 11px;
+            width: 90px;
+            padding: 10px !important;
+        }
+
+        .cell-card {
+            background-color: #ffe6e6;
+            border: 1px solid #cc0000;
+            color: #cc0000;
+            padding: 6px;
+            border-radius: 6px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+        .cell-card .nombre { font-weight: bold; font-size: 12px; }
+        .cell-card .meta { font-size: 10px; color: #333; }
+
+        .btn-delete-slot {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 8px;
+            background: #777;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .btn-delete-slot:hover { opacity: 0.9; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal-content {
+            width: 420px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            padding: 14px 16px;
+            color: #fff;
+            background: linear-gradient(to right, #cc0000, #ff9800);
+        }
+        .modal-header h3 { margin: 0; }
+        .modal-header p { margin: 4px 0 0; opacity: 0.9; font-size: 13px; }
+
+        .modal-body { padding: 14px 16px; }
+        .form-group { margin-bottom: 10px; text-align: left; }
+        .form-group label { display:block; font-size: 12px; color: #444; margin-bottom: 6px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .modal-footer {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .btn-confirm {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #cc0000;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-cancel {
+            width: 120px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #777;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-left">
+        <div class="logo-icon">📖</div>
+        <div class="logo-text">
+            <h1>UpNotes</h1>
+            <p>Universidad de Pamplona - Sistema de Horarios</p>
+        </div>
+    </div>
+    <button class="btn-semestre">📅 Semestre Actual</button>
+</header>
+
+<div class="nav-bar">
+    <a href="/horario" class="active">Horario de Clases</a>
+    <a href="/materias">Mis Materias</a>
+    <a href="/calendario">Calendario</a>
+    <a href="/notas">Notas</a>
+    <a href="/logout">Cerrar sesión</a>
+</div>
+
+<div class="main-content">
+    <div class="schedule-container">
+
+        <div style="text-align: left; margin-bottom: 10px;">
+            <span style="color: gray;">Inicio / Académico / <span style="color: red;">Horario de Clases</span></span>
+            <h2>Mi Horario Académico</h2>
+        </div>
+
+        <div class="top-info">
+            <span style="color: #cc0000;">
+                Horario Semanal <br>
+                <span style="color:gray; font-size:12px;">Haz clic en cualquier casilla para agregar una materia</span>
+            </span>
+
+            <div style="text-align: right;">
+                Total de créditos<br>
+                <span class="credits-count" style="color: #cc0000;">0</span>
+            </div>
+        </div>
+
+        <table class="schedule-table">
+            <thead>
+            <tr>
+                <th>Hora</th>
+                <th class="day-header">Lunes</th>
+                <th class="day-header">Martes</th>
+                <th class="day-header">Miércoles</th>
+                <th class="day-header">Jueves</th>
+                <th class="day-header">Viernes</th>
+                <th class="day-header">Sábado</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr>
+                <td class="time-cell">6:00 AM<br>7:00 AM</td>
+                <td data-dia="Lunes" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','6:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','6:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','6:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','6:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','6:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="6:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','6:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">7:00 AM<br>8:00 AM</td>
+                <td data-dia="Lunes" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','7:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','7:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','7:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','7:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','7:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="7:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','7:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">8:00 AM<br>9:00 AM</td>
+                <td data-dia="Lunes" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','8:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','8:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','8:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','8:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','8:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="8:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','8:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">9:00 AM<br>10:00 AM</td>
+                <td data-dia="Lunes" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','9:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','9:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','9:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','9:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','9:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="9:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','9:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">10:00 AM<br>11:00 AM</td>
+                <td data-dia="Lunes" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','10:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','10:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','10:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','10:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','10:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="10:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','10:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">11:00 AM<br>12:00 PM</td>
+                <td data-dia="Lunes" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Lunes','11:00 AM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Martes','11:00 AM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','11:00 AM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Jueves','11:00 AM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Viernes','11:00 AM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="11:00 AM"><button class="btn-add-cell" onclick="abrirModal('Sábado','11:00 AM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">12:00 PM<br>1:00 PM</td>
+                <td data-dia="Lunes" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','12:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','12:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','12:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','12:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','12:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="12:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','12:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">1:00 PM<br>2:00 PM</td>
+                <td data-dia="Lunes" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','1:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','1:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','1:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','1:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','1:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="1:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','1:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">2:00 PM<br>3:00 PM</td>
+                <td data-dia="Lunes" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','2:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','2:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','2:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','2:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','2:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="2:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','2:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">3:00 PM<br>4:00 PM</td>
+                <td data-dia="Lunes" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','3:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','3:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','3:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','3:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','3:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="3:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','3:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">4:00 PM<br>5:00 PM</td>
+                <td data-dia="Lunes" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','4:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','4:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','4:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','4:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','4:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="4:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','4:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">5:00 PM<br>6:00 PM</td>
+                <td data-dia="Lunes" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','5:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','5:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','5:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','5:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','5:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="5:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','5:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            <tr>
+                <td class="time-cell">6:00 PM<br>7:00 PM</td>
+                <td data-dia="Lunes" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Lunes','6:00 PM')">+ Agregar</button></td>
+                <td data-dia="Martes" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Martes','6:00 PM')">+ Agregar</button></td>
+                <td data-dia="Miércoles" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Miércoles','6:00 PM')">+ Agregar</button></td>
+                <td data-dia="Jueves" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Jueves','6:00 PM')">+ Agregar</button></td>
+                <td data-dia="Viernes" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Viernes','6:00 PM')">+ Agregar</button></td>
+                <td data-dia="Sábado" data-hora="6:00 PM"><button class="btn-add-cell" onclick="abrirModal('Sábado','6:00 PM')">+ Agregar</button></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- MODAL -->
+<div id="modalMateria" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Agregar Materia</h3>
+            <p id="modalDiaHora">Lunes - 6:00 AM</p>
+        </div>
+
+        <form action="/guardarMateria" method="post">
+            <div class="modal-body">
+                <input type="hidden" id="inputDia" name="dia">
+                <input type="hidden" id="inputHora" name="hora">
+
+                <div class="form-group">
+                    <label>Seleccionar desde "Mis Materias" (opcional)</label>
+                    <select id="selectMateria" name="materiaId">
+                        <option value="">-- (opcional) --</option>
+                        <option th:each="m : ${materiasRegistradas}"
+                                th:value="${m.id}"
+                                th:text="${m.nombre}"
+                                th:attr="data-creditos=${m.creditos}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre de la materia</label>
+                    <input type="text" id="inputNombre" name="nombre" placeholder="Ej: Cálculo I">
+                </div>
+
+                <div class="form-group">
+                    <label>Número de créditos</label>
+                    <input type="number" id="inputCreditos" name="creditos" placeholder="Ej: 3">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn-confirm">Agregar Materia</button>
+                <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var listaMaterias = /*[[${materias}]]*/ [];
+
+    function quitarTildes(texto) {
+        return (texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function canonDia(dia) {
+        let d = (dia || "").trim();
+        let base = quitarTildes(d).toLowerCase();
+
+        if (base.startsWith("lun")) return "Lunes";
+        if (base.startsWith("mar")) return "Martes";
+        if (base.startsWith("mie")) return "Miércoles";
+        if (base.startsWith("jue")) return "Jueves";
+        if (base.startsWith("vie")) return "Viernes";
+        if (base.startsWith("sab")) return "Sábado";
+        return d;
+    }
+
+    function canonHora(hora) {
+        let h = (hora || "").trim();
+        if (!h) return h;
+
+        h = h.toUpperCase().replace(/\s+/g, " ");
+        h = h.replace("AM", " AM").replace("PM", " PM").replace(/\s+/g, " ").trim();
+
+        const m24 = h.match(/^(\d{1,2}):(\d{2})$/);
+        if (m24) {
+            let hh = parseInt(m24[1], 10);
+            let mm = m24[2];
+            let ampm = "AM";
+            if (hh === 0) { hh = 12; ampm = "AM"; }
+            else if (hh === 12) { ampm = "PM"; }
+            else if (hh > 12) { hh = hh - 12; ampm = "PM"; }
+            return `${hh}:${mm} ${ampm}`;
+        }
+
+        const m12 = h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+        if (m12) {
+            let hh = parseInt(m12[1], 10);
+            let mm = m12[2];
+            let ap = m12[3];
+            return `${hh}:${mm} ${ap}`;
+        }
+
+        return h;
+    }
+
+    function pintarHorario() {
+        if (!listaMaterias) return;
+
+        listaMaterias.forEach(function(m) {
+            const dia = canonDia(m.dia);
+            const hora = canonHora(m.hora);
+
+            const celda = document.querySelector(`td[data-dia="${dia}"][data-hora="${hora}"]`);
+            if (!celda) return;
+
+            const creditos = (m.creditos == null) ? 0 : Number(m.creditos);
+
+            celda.innerHTML = `
+                <div class="cell-card">
+                    <div class="nombre">${m.nombre || "(Sin nombre)"}</div>
+                    <div class="meta">${creditos} Créditos</div>
+
+                    <form method="post" action="/eliminarMateriaHorario"
+                          onsubmit="return confirm('¿Eliminar esta materia de esta casilla del horario?');">
+                        <input type="hidden" name="id" value="${m.id}">
+                        <button type="submit" class="btn-delete-slot">Eliminar</button>
+                    </form>
+                </div>
+            `;
+        });
+    }
+
+    function calcularTotalCreditosUnicos() {
+        let total = 0;
+        const seen = new Set();
+
+        if (listaMaterias) {
+            listaMaterias.forEach(m => {
+                const nombre = (m.nombre || "").trim().toLowerCase();
+                if (!nombre) return;
+
+                if (seen.has(nombre)) return;
+                seen.add(nombre);
+
+                const c = (m.creditos == null) ? 0 : Number(m.creditos);
+                total += c;
+            });
+        }
+
+        document.querySelector('.credits-count').innerText = total;
+    }
+
+    function abrirModal(dia, hora) {
+        document.getElementById('modalMateria').style.display = 'flex';
+
+        const d = canonDia(dia);
+        const h = canonHora(hora);
+
+        document.getElementById('modalDiaHora').innerText = d + " - " + h;
+        document.getElementById('inputDia').value = d;
+        document.getElementById('inputHora').value = h;
+
+        const sel = document.getElementById('selectMateria');
+        const inNom = document.getElementById('inputNombre');
+        const inCre = document.getElementById('inputCreditos');
+        if (sel) sel.value = "";
+        if (inNom) inNom.value = "";
+        if (inCre) inCre.value = "";
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalMateria').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById('modalMateria');
+        if (event.target === modal) cerrarModal();
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const sel = document.getElementById("selectMateria");
+        const inNom = document.getElementById("inputNombre");
+        const inCre = document.getElementById("inputCreditos");
+
+        if (sel && inNom && inCre) {
+            sel.addEventListener("change", function() {
+                const opt = sel.options[sel.selectedIndex];
+                if (!opt || !opt.value) return;
+
+                inNom.value = opt.textContent || "";
+                const cred = opt.getAttribute("data-creditos");
+                if (cred != null && cred !== "") inCre.value = cred;
+            });
+        }
+
+        pintarHorario();
+        calcularTotalCreditosUnicos();
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>UpNotes - Calendario</title>
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <div class="logo-icon">📖</div>
+        <div class="logo-text">
+            <h1>UpNotes</h1>
+            <p>Universidad de Pamplona - Organización Académica</p>
+        </div>
+    </div>
+    <a class="btn-semestre" href="/logout" style="text-decoration:none;">🚪 Cerrar sesión</a>
+</header>
+
+<div class="nav-bar">
+    <a href="/horario">Horario</a>
+    <a href="/materias">Mis Materias</a>
+    <a href="/calendario" class="active">Calendario</a>
+    <a href="/notas">Notas</a>
+</div>
+
+<div class="main-content" style="display:block; padding:20px;">
+    <div class="container">
+        <h2>Calendario - <span th:text="${year}">2025</span></h2>
+        <p class="muted">Se muestran únicamente tareas pendientes registradas en “Mis Materias”.</p>
+
+        <!-- ✅ Datos seguros: tareas embebidas como HTML oculto -->
+        <div id="dataTareas" style="display:none;">
+            <div th:each="entry : ${tareasPorFecha}">
+                <div th:each="t : ${entry.value}"
+                     th:attr="data-fecha=${entry.key},data-nombre=${t.nombre}">
+                </div>
+            </div>
+        </div>
+
+        <div class="months-grid">
+            <div class="month-card" th:each="m : ${#numbers.sequence(1,12)}" th:attr="data-month=${m}">
+                <div class="month-title"
+                     th:text="${#temporals.format(T(java.time.LocalDate).of(year, m, 1), 'MMMM')}">
+                    Mes
+                </div>
+
+                <table class="mini-cal">
+                    <thead>
+                    <tr>
+                        <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <div class="muted" style="margin-top:6px;">Tareas pendientes del mes en los días marcados.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const year = Number(document.querySelector("h2 span").innerText.trim()) || new Date().getFullYear();
+
+    // 1) Construimos un mapa: "YYYY-MM-DD" -> [ {nombre} ... ]
+    const tareasPorFecha = {};
+    document.querySelectorAll("#dataTareas > div > div").forEach(el => {
+        const fecha = el.getAttribute("data-fecha");
+        const nombre = el.getAttribute("data-nombre");
+        if (!fecha) return;
+
+        if (!tareasPorFecha[fecha]) tareasPorFecha[fecha] = [];
+        tareasPorFecha[fecha].push({ nombre: nombre || "Tarea" });
+    });
+
+    function iso(d) {
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    function buildMonth(tableBody, month) {
+        tableBody.innerHTML = "";
+        const first = new Date(year, month-1, 1);
+        const last = new Date(year, month, 0);
+        const startDay = (first.getDay() + 6) % 7; // lunes=0
+
+        let row = document.createElement("tr");
+
+        for (let i=0; i<startDay; i++) {
+            const td = document.createElement("td");
+            td.className = "empty";
+            row.appendChild(td);
+        }
+
+        for (let day=1; day<=last.getDate(); day++) {
+            const d = new Date(year, month-1, day);
+            const key = iso(d);
+
+            const td = document.createElement("td");
+            td.className = "day";
+
+            const num = document.createElement("div");
+            num.className = "day-num";
+            num.textContent = day;
+            td.appendChild(num);
+
+            const tareas = tareasPorFecha[key];
+            if (tareas && tareas.length > 0) {
+                td.classList.add("has-task");
+
+                const ul = document.createElement("ul");
+                ul.className = "day-tasks";
+
+                tareas.slice(0,2).forEach(t => {
+                    const li = document.createElement("li");
+                    li.textContent = t.nombre;
+                    ul.appendChild(li);
+                });
+
+                if (tareas.length > 2) {
+                    const li = document.createElement("li");
+                    li.textContent = `+${tareas.length-2} más`;
+                    ul.appendChild(li);
+                }
+
+                td.appendChild(ul);
+            }
+
+            row.appendChild(td);
+
+            const weekDay = (d.getDay() + 6) % 7;
+            if (weekDay === 6) {
+                tableBody.appendChild(row);
+                row = document.createElement("tr");
+            }
+        }
+
+        if (row.children.length > 0) {
+            while (row.children.length < 7) {
+                const td = document.createElement("td");
+                td.className = "empty";
+                row.appendChild(td);
+            }
+            tableBody.appendChild(row);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".month-card").forEach(card => {
+            const month = Number(card.getAttribute("data-month"));
+            const tbody = card.querySelector("tbody");
+            buildMonth(tbody, month);
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UpNotes - Registrarse</title>
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="logo-icon">📖</div>
+            <div class="logo-text">
+                <h1>UpNotes</h1>
+                <p>Universidad de Pamplona - Sistema de Horarios</p>
+            </div>
+        </div>
+        <button class="btn-semestre">📅 Semestre Actual</button>
+    </header>
+
+    <div class="nav-bar">
+        <a href="/">Iniciar Sesión</a>
+        <a href="/horario">Horario de Clases</a>
+        <a href="/materias">Mis Materias</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/notas">Notas</a>
+    </div>
+
+    <div class="main-content">
+        <h2>Crear cuenta en UpNotes</h2>
+        <p style="color: gray;">Sistema de gestión académica</p>
+        <p class="university-title">Universidad de Pamplona</p>
+
+        <div class="login-card">
+            <p style="color: #cc0000; font-weight: bold;">Registro de Usuario</p>
+            <p style="font-size: 12px; color: gray;">Crea tu cuenta para guardar tus materias y tareas</p>
+
+            <div class="toggle-btn">
+                <button onclick="window.location.href='/'">Iniciar Sesión</button>
+                <button class="active">Registrarse</button>
+            </div>
+
+            <form action="/registrar" method="post" onsubmit="return validarPasswords();">
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Nombre Completo</div>
+                <input type="text" name="nombre" placeholder="Juan Pérez" required>
+
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Correo Electrónico</div>
+                <input type="email" name="correo" placeholder="tu.correo@unipamplona.edu.co" required>
+
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Contraseña</div>
+                <input type="password" id="pass1" name="password" placeholder="........" required>
+
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Confirmar Contraseña</div>
+                <input type="password" id="pass2" placeholder="........" required>
+
+                <div id="msgPass" style="color: red; font-size: 12px; margin: 10px 0 0 0; display:none;">
+                    Las contraseñas no coinciden.
+                </div>
+
+                <div style="display: flex; align-items: start; gap: 5px; font-size: 11px; margin: 12px 0 15px; text-align: left;">
+                    <input type="checkbox" required style="width: auto; margin-top: 2px;">
+                    <label>
+                        Acepto los <span style="color: #cc0000;">términos y condiciones</span> y la
+                        <span style="color: #cc0000;">política de privacidad</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-login">Crear Cuenta</button>
+            </form>
+
+            <a href="#" class="footer-link">¿Necesitas ayuda? Contacta soporte técnico</a>
+        </div>
+    </div>
+
+    <script>
+        function validarPasswords() {
+            const p1 = document.getElementById('pass1').value;
+            const p2 = document.getElementById('pass2').value;
+            const msg = document.getElementById('msgPass');
+
+            if (p1 !== p2) {
+                msg.style.display = 'block';
+                return false;
+            }
+            msg.style.display = 'none';
+            return true;
+        }
+    </script>
+
+</body>
+</html>

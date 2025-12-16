@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UpNotes - Iniciar Sesión</title>
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="logo-icon">📖</div> <div class="logo-text">
+                <h1>UpNotes</h1>
+                <p>Universidad de Pamplona - Sistema de Horarios</p>
+            </div>
+        </div>
+        <button class="btn-semestre">📅 Semestre Actual</button>
+    </header>
+
+    <div class="nav-bar">
+        <a href="/" class="active">Iniciar Sesión</a>
+        <a href="/horario">Horario de Clases</a>
+        <a href="/materias">Mis Materias</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/notas">Notas</a>
+    </div>
+
+    <div class="main-content">
+        <h2>Bienvenido a UpNotes</h2>
+        <p style="color: gray;">Sistema de gestión académica</p>
+        <p class="university-title">Universidad de Pamplona</p>
+
+        <div class="login-card">
+            <p style="color: #cc0000; font-weight: bold;">Acceso al Sistema</p>
+            <p style="font-size: 12px; color: gray;">Inicia sesión o crea una cuenta nueva</p>
+
+            <div class="toggle-btn">
+                <button class="active">Iniciar Sesión</button>
+                <button onclick="window.location.href='/registro'">Registrarse</button>
+            </div>
+
+           <form action="/login" method="post">
+                
+                <div th:if="${param.error}" style="color: red; font-size: 12px; margin-bottom: 10px;">
+                    Usuario o contraseña incorrectos.
+                </div>
+
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Correo Electrónico</div>
+                <input type="email" name="correo" placeholder="tu.correo@unipamplona.edu.co" required>
+
+                <div style="text-align: left; font-size: 12px; margin-bottom: 5px;">Contraseña</div>
+                <input type="password" name="password" placeholder="........" required>
+
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 15px;">
+                    <label><input type="checkbox" style="width: auto;"> Recordarme</label>
+                    <a href="#" style="color: #cc0000; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-login">Iniciar Sesión</button>
+            </form>
+
+            <a href="#" class="footer-link">¿Necesitas ayuda? Contacta soporte técnico</a>
+        </div>
+    </div>
+
+</body>
+</html>

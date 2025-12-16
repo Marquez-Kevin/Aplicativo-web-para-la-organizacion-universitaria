@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>UpNotes - Mis Materias</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-icon">📖</div>
+    <div class="logo-text">
+      <h1>UpNotes</h1>
+      <p>Universidad de Pamplona - Organización Académica</p>
+    </div>
+  </div>
+  <a class="btn-semestre" href="/logout" style="text-decoration:none;">🚪 Cerrar sesión</a>
+</header>
+
+<div class="nav-bar">
+  <a href="/horario">Horario</a>
+  <a href="/materias" class="active">Mis Materias</a>
+  <a href="/calendario">Calendario</a>
+  <a href="/notas">Notas</a>
+</div>
+
+<div class="main-content" style="display:block; padding:20px;">
+  <div class="container">
+    <h2>Mis Materias</h2>
+
+    <div class="card">
+      <h3>Registrar materia (todo opcional)</h3>
+      <form action="/materias/guardar" method="post" class="grid-2">
+        <input type="text" name="nombre" placeholder="Nombre">
+        <input type="number" name="creditos" placeholder="Créditos" min="0">
+        <input type="number" name="semestre" placeholder="Semestre" min="1">
+        <input type="text" name="profesor" placeholder="Profesor">
+        <button class="btn-login" type="submit" style="grid-column:1/-1;">Guardar</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Materias registradas</h3>
+
+      <div th:if="${#lists.isEmpty(materiasUsuario)}" class="muted">
+        Aún no has registrado materias.
+      </div>
+
+      <div class="materia-item" th:each="m : ${materiasUsuario}">
+        <div class="materia-head">
+          <div>
+            <div class="materia-title" th:text="${m.nombre}">Materia</div>
+            <div class="muted">
+              Créditos: <span th:text="${m.creditos != null ? m.creditos : '—'}">—</span> |
+              Semestre: <span th:text="${m.semestre != null ? m.semestre : '—'}">—</span> |
+              Profesor: <span th:text="${(m.profesor != null and !m.profesor.isBlank()) ? m.profesor : '—'}">—</span>
+            </div>
+          </div>
+          <form action="/materias/eliminar" method="post">
+            <input type="hidden" name="id" th:value="${m.id}">
+            <button type="submit" class="btn-cancel">Eliminar</button>
+          </form>
+        </div>
+
+        <div class="tareas-box">
+          <h4>Tareas / Actividades</h4>
+
+          <form action="/tareas/guardar" method="post" class="grid-3">
+            <input type="hidden" name="materiaUsuarioId" th:value="${m.id}">
+            <input type="text" name="nombre" placeholder="Nombre tarea" required>
+            <input type="date" name="fechaLimite" required>
+            <input type="text" name="descripcion" placeholder="Descripción (opcional)">
+            <button type="submit" class="btn-confirm" style="grid-column:1/-1;">Agregar tarea</button>
+          </form>
+
+          <div class="tarea-list">
+            <div th:each="t : ${tareasPorMateria[m.id]}">
+              <div class="tarea-row" th:classappend="${t.completada} ? ' done' : ''">
+                <div>
+                  <div class="tarea-title" th:text="${t.nombre}">Tarea</div>
+                  <div class="muted">
+                    Fecha límite: <span th:text="${t.fechaLimite}">2025-01-01</span>
+                    <span th:if="${t.descripcion != null and !t.descripcion.isBlank()}"> | <span th:text="${t.descripcion}"></span></span>
+                  </div>
+                </div>
+
+                <div class="tarea-actions">
+                  <form action="/tareas/toggle" method="post">
+                    <input type="hidden" name="id" th:value="${t.id}">
+                    <button type="submit" class="btn-confirm" th:text="${t.completada} ? 'Reabrir' : 'Completar'">Completar</button>
+                  </form>
+
+                  <form action="/tareas/eliminar" method="post">
+                    <input type="hidden" name="id" th:value="${t.id}">
+                    <button type="submit" class="btn-cancel">Eliminar</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div th:if="${tareasPorMateria[m.id]} == null" class="muted">
+              Sin tareas registradas.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
