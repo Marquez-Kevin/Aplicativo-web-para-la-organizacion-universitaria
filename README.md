@@ -55,33 +55,6 @@ Desarrollado con **Spring Boot + Thymeleaf + PostgreSQL**, usando **Java 17** y 
 
 ---
 
-## 📂 Estructura del proyecto (backend)
-
-```txt
-backend/
- ├─ src/
- │  ├─ main/
- │  │  ├─ java/com/upnotes/backend/
- │  │  │  ├─ controllers/
- │  │  │  ├─ models/
- │  │  │  ├─ repositories/
- │  │  │  └─ BackendApplication.java
- │  │  └─ resources/
- │  │     ├─ static/css/estilos.css
- │  │     ├─ templates/
- │  │     │  ├─ login.html
- │  │     │  ├─ registro.html
- │  │     │  ├─ horario.html
- │  │     │  ├─ materias.html
- │  │     │  ├─ calendario.html
- │  │     │  └─ notas.html
- │  │     └─ application.properties
- │  └─ test/...
- ├─ pom.xml
- ├─ mvnw / mvnw.cmd
- └─ README.md
-
-
 🗄️ Base de datos (PostgreSQL)
 
 Actualmente el proyecto utiliza una base de datos llamada, por ejemplo:
@@ -156,11 +129,40 @@ que el archivo .html exista en templates
 
 que el nombre retornado por el controller coincida con el HTML
 
+
 📌 Autor / Proyecto
 
-UpNotes - Universidad de Pamplona
+# UpNotes - Universidad de Pamplona
 Sistema de organización académica para estudiantes: horario, materias, tareas, calendario y notas.
 
 JUAN DIEGO SEPULVEDA
 KEVIN MARQUEZ
 JHON BARRAGAN
+
+## 📂 Estructura del proyecto (backend)
+
+```txt
+backend/
+ ├─ src/
+ │  ├─ main/
+ │  │  ├─ java/com/upnotes/backend/
+ │  │  │  ├─ controllers/
+ │  │  │  ├─ models/
+ │  │  │  ├─ repositories/
+ │  │  │  └─ BackendApplication.java
+ │  │  └─ resources/
+ │  │     ├─ static/css/estilos.css
+ │  │     ├─ templates/
+ │  │     │  ├─ login.html
+ │  │     │  ├─ registro.html
+ │  │     │  ├─ horario.html
+ │  │     │  ├─ materias.html
+ │  │     │  ├─ calendario.html
+ │  │     │  └─ notas.html
+ │  │     └─ application.properties
+ │  └─ test/...
+ ├─ pom.xml
+ ├─ mvnw / mvnw.cmd
+ └─ README.md
+
+
